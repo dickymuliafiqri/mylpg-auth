@@ -78,7 +78,13 @@ export class AuthDatabase {
   private db: AuthDb;
 
   constructor(url: string, authToken: string) {
-    if (!url || !authToken) {
+    // Trim: nilai dari env (mis. Environment Variables Vercel) sering membawa
+    // newline/spasi di ujung saat di-paste. Token yang mengandung "\n" membuat
+    // header HTTP `Authorization: Bearer ...` tidak valid dan fetch menolaknya
+    // ("Header has invalid value"). Bersihkan whitespace di kedua ujung.
+    const cleanUrl = url.trim();
+    const cleanToken = authToken.trim();
+    if (!cleanUrl || !cleanToken) {
       throw new Error(
         "Auth DB butuh TURSO_DATABASE_URL + TURSO_DATABASE_TOKEN (Turso remote).",
       );
@@ -87,8 +93,10 @@ export class AuthDatabase {
     // native/WebSocket) agar aman di runtime serverless Vercel. Layer /compat
     // menyediakan Client yang drop-in dengan @libsql/client, jadi adapter
     // drizzle-orm/libsql tetap dipakai tanpa perubahan query.
-    this.client = createClient({ url, authToken });
-    this.db = createDrizzle(this.client, { schema: { appUsersTable, appSessionsTable } }) as AuthDb;
+    this.client = createClient({ url: cleanUrl, authToken: cleanToken });
+    this.db = createDrizzle(this.client, {
+      schema: { appUsersTable, appSessionsTable },
+    }) as AuthDb;
   }
 
   async ensureTables(): Promise<void> {
