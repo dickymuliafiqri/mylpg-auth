@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/*
+  Desain ringan & sederhana — tanpa glassmorphism, tanpa blur, tanpa transparansi.
+  Palet netral + satu aksen biru. Permukaan solid, border tipis, sudut lembut.
+*/
+@theme {
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background-color: #f6f7f9;
+  color: #1f2937;
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+}
+
+/* Fokus yang jelas untuk aksesibilitas keyboard. */
+:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+}

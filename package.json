@@ -1,0 +1,29 @@
+{
+  "name": "mylpg-auth",
+  "type": "module",
+  "private": true,
+  "description": "Management dashboard + public auth API for the mylpg Turso user table.",
+  "scripts": {
+    "dev": "bun --bun nuxt dev",
+    "build": "bun --bun nuxt build",
+    "start": "bun run .output/server/index.mjs",
+    "prepare": "bun --bun nuxt prepare",
+    "typecheck": "bun --bun vue-tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/bun": "latest",
+    "typescript": "^5.9.3",
+    "vue-tsc": "latest"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.17.4",
+    "@tailwindcss/vite": "^4.1.0",
+    "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.45.2",
+    "nuxt": "^4.1.0",
+    "nuxt-auth-utils": "latest",
+    "tailwindcss": "^4.1.0",
+    "vue": "^3.5.0"
+  }
+}
