@@ -25,12 +25,10 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    // @libsql/client menarik dependensi (mis. @libsql/isomorphic-ws) yang tidak
-    // ikut ter-bundle rapi oleh Nitro. Tandai sebagai eksternal supaya di-resolve
-    // dari node_modules saat runtime (butuh node_modules ikut saat deploy).
-    externals: {
-      external: ["@libsql/client", "@libsql/client/node", "libsql"],
-    },
+    // Preset Vercel: Nitro otomatis membangun output serverless yang sesuai
+    // saat dideploy ke Vercel. Driver DB (@tursodatabase/serverless) murni
+    // SQL-over-HTTP tanpa dependensi native, jadi aman di fungsi serverless.
+    preset: process.env.NITRO_PRESET || undefined,
   },
 
   app: {

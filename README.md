@@ -8,7 +8,8 @@ sini langsung bisa dipakai login di mylpg.
 ## Teknologi
 
 - **Nuxt 4** (Vue 3, SSR) + **Nitro** server
-- **Drizzle ORM** + **Turso** (`@libsql/client`) — remote libSQL
+- **Drizzle ORM** + **Turso** via **`@tursodatabase/serverless`** — koneksi
+  SQL-over-HTTP tanpa dependensi native/WebSocket, aman untuk serverless (Vercel)
 - **nuxt-auth-utils** — cookie session untuk panel admin
 - **bcryptjs** — hashing password bcrypt (kompatibel dengan `Bun.password` di mylpg)
 - **Tailwind CSS v4** — desain ringan, solid, tanpa glassmorphism
@@ -52,6 +53,21 @@ sini langsung bisa dipakai login di mylpg.
    ```
 
 3. Buka `http://localhost:3000`, login dengan `APP_USERNAME`/`APP_PASSWORD`.
+
+## Deploy ke Vercel
+
+Koneksi DB memakai `@tursodatabase/serverless` (SQL-over-HTTP), jadi berjalan
+mulus di Vercel Functions tanpa dependensi native. Nitro otomatis mendeteksi
+preset Vercel saat build di sana.
+
+1. Import repo ke Vercel (framework terdeteksi otomatis sebagai Nuxt).
+2. Set **Environment Variables** di Project Settings (bukan file `.env`):
+   `TURSO_DATABASE_URL`, `TURSO_DATABASE_TOKEN`, `NUXT_SESSION_PASSWORD`,
+   `APP_USERNAME`, `APP_PASSWORD`, `PUBLIC_API_KEY`.
+3. Deploy. Tabel dibuat otomatis saat request pertama memicu plugin bootstrap.
+
+Untuk build serverless lokal (opsional): `NITRO_PRESET=vercel bun run build`.
+
 
 ## Skema tabel
 

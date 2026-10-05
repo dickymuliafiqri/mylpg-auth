@@ -1,5 +1,11 @@
-import { createClient, type Client } from "@libsql/client/node";
-import { drizzle } from "drizzle-orm/libsql/node";
+import { createClient } from "@tursodatabase/serverless/compat";
+// `construct(client, config)` ada di runtime driver-core.js tapi tidak
+// diekspor di .d.ts drizzle. Kita pakai ini (bukan `drizzle` dari driver.js)
+// supaya `@libsql/client` — yang di-import eager oleh driver.js dan menarik
+// dependensi native/WebSocket — TIDAK ikut ter-bundle. Aman untuk serverless
+// Vercel; koneksi lewat @tursodatabase/serverless/compat.
+// @ts-expect-error — `construct` tidak ada di tipe publik, hanya di runtime.
+import { construct as createDrizzle } from "drizzle-orm/libsql/driver-core";
 import type { LibSQLDatabase } from "drizzle-orm/libsql/driver-core";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
@@ -7,6 +13,7 @@ import { appSessionsTable, appUsersTable } from "./schema";
 
 type AuthSchema = typeof import("./schema");
 type AuthDb = LibSQLDatabase<AuthSchema>;
+type LibsqlCompatClient = ReturnType<typeof createClient>;
 
 /** Masa aktif sesi aplikasi mylpg (sliding), dipotong oleh user.expiresAt. */
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 hari
@@ -67,7 +74,7 @@ const ENSURE_AUTH_TABLES_SQL = [
 ];
 
 export class AuthDatabase {
-  private client: Client;
+  private client: LibsqlCompatClient;
   private db: AuthDb;
 
   constructor(url: string, authToken: string) {
@@ -76,15 +83,12 @@ export class AuthDatabase {
         "Auth DB butuh TURSO_DATABASE_URL + TURSO_DATABASE_TOKEN (Turso remote).",
       );
     }
-    // Paksa transport HTTP (bukan WebSocket) dengan mengubah skema
-    // libsql:// -> https://. Ini menghindari dependensi @libsql/isomorphic-ws
-    // (hrana WS client) yang tidak ikut ter-bundle rapi oleh Nitro, sekaligus
-    // tetap kompatibel penuh dengan Turso.
-    const httpUrl = url.startsWith("libsql://")
-      ? url.replace(/^libsql:\/\//, "https://")
-      : url;
-    this.client = createClient({ url: httpUrl, authToken });
-    this.db = drizzle(this.client);
+    // Driver @tursodatabase/serverless (SQL-over-HTTP, tanpa dependensi
+    // native/WebSocket) agar aman di runtime serverless Vercel. Layer /compat
+    // menyediakan Client yang drop-in dengan @libsql/client, jadi adapter
+    // drizzle-orm/libsql tetap dipakai tanpa perubahan query.
+    this.client = createClient({ url, authToken });
+    this.db = createDrizzle(this.client, { schema: { appUsersTable, appSessionsTable } }) as AuthDb;
   }
 
   async ensureTables(): Promise<void> {
