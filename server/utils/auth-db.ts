@@ -78,12 +78,15 @@ export class AuthDatabase {
   private db: AuthDb;
 
   constructor(url: string, authToken: string) {
-    // Trim: nilai dari env (mis. Environment Variables Vercel) sering membawa
-    // newline/spasi di ujung saat di-paste. Token yang mengandung "\n" membuat
-    // header HTTP `Authorization: Bearer ...` tidak valid dan fetch menolaknya
-    // ("Header has invalid value"). Bersihkan whitespace di kedua ujung.
-    const cleanUrl = url.trim();
-    const cleanToken = authToken.trim();
+    // Bersihkan SEMUA whitespace (spasi, tab, CR, LF) dari URL dan token.
+    // Nilai dari Environment Variables Vercel sering membawa newline — baik di
+    // ujung maupun DI TENGAH (editor UI kadang membungkus/menyisipkan "\n" pada
+    // nilai panjang). Token/URL Turso tidak pernah mengandung whitespace, jadi
+    // menghapus semuanya aman. Token ber-"\n" membuat header HTTP
+    // `Authorization: Bearer ...` invalid dan fetch melempar
+    // "Header has invalid value", menggagalkan semua query.
+    const cleanUrl = url.replace(/\s+/g, "");
+    const cleanToken = authToken.replace(/\s+/g, "");
     if (!cleanUrl || !cleanToken) {
       throw new Error(
         "Auth DB butuh TURSO_DATABASE_URL + TURSO_DATABASE_TOKEN (Turso remote).",
